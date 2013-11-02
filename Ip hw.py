@@ -41,23 +41,8 @@ taylor = read_img_from("http://www.bimtri.com/wp-content/uploads/2013/08/Taylor-
 from plotters import CrazyPlotter as crazy
 reload(sys.modules['plotters'])
 cp = crazy()
-cp.demo_ip(title='Scarlett Johansson', img=scarlet).show()
-cp.demo_ip(title='Taylor Swift', img=taylor).show()
-
-# <codecell>
-
-
-    print x
-
-# <codecell>
-
-g_scarlet = cv2.cvtColor(scarlet, cv2.COLOR_RGB2GRAY)
-fig = plt.figure(figsize=(18, 15), dpi=120)
-fig.subplots_adjust(hspace=.01, wspace=.01)
-plot_with_hist([2,3,1], 'scarlet', scarlet)
-addplot([2,3,2], 'gray scarlet', g_scarlet)
-addplot([2,3,3], 'gray scarlet', g_scarlet)
-plt.show()
+cp.histo_equal(title='Scarlett Johansson', img=scarlet).show()
+#cp.histo_equal(title='Taylor Swift', img=taylor).show()
 
 # <markdowncell>
 
@@ -66,6 +51,13 @@ plt.show()
 #   - Apply median filters to an input image
 #   - Apply image sharpening based on Laplacian mask to an input image
 #   - Apply unsharp masking to an input imag
+
+# <codecell>
+
+from plotters import CrazyPlotter as crazy
+reload(sys.modules['plotters'])
+cp = crazy()
+cp.blurring(title='Taylor Swift', img=taylor).show()
 
 # <markdowncell>
 

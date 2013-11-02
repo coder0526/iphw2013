@@ -12,14 +12,14 @@ class CrazyPlotter(object):
     def __init__(self):
         self.data = 'Grid plot class'
                 
-    def _hide_ticks(self, fig):
+    def _hide_ticks(self, fig, x=True, y=True):
         for i, ax in enumerate(fig.axes):
             #ax.text(0.5, 0.5, "ax%d" % (i+1), va="center", ha="center")
             #ax.set_title('good%d' % i)
-            #ax.xaxis.set_ticks([])
-            ax.yaxis.set_ticks([])
+            if x: ax.xaxis.set_ticks([])
+            if y: ax.yaxis.set_ticks([])
             
-    def _hist_plot(self, axis, img):
+    def _hist(self, axis, img):
         color = ('b','g','r')
         if img.ndim == 2:
             #histr = cv2.calcHist([img],[0],None,[256],[0,256])
@@ -32,36 +32,57 @@ class CrazyPlotter(object):
                 axis.hist(img[...,i].flatten(), 128, fc=color[i], alpha=.5)
                 
             
-    def _sub_plotting(self, fig, index, img, title='untitled'):
+    def _plot_histo(self, fig, index, img, title='untitled'):
         grid = GridSpec(4, 3)
         ax1 = fig.add_subplot(grid[:3, index])
         ax1.set_title(title)
         ax1.imshow(img, cmap="Greys_r")
         ax2 = fig.add_subplot(grid[3:, index])
         ax2.set_title(title+'-histogram')
-        self._hist_plot(ax2, img)
+        self._hist(ax2, img)
         ax2.set_xlim(0, 256)
-            
-    def demo_ip(self, **kwargs): #image processing
+
+    def histo_equal(self, **kwargs): #image processing
         title = kwargs.get('title', 'untitled')
         img = kwargs.get('img', None)
         fig = plt.figure(figsize=(16, 10))
         fig.subplots_adjust(hspace=.14, wspace=.03)
         fig.suptitle( title, fontsize=25, y=.96)
-        self._sub_plotting(fig, 0, img, 'original')
+        self._plot_histo(fig, 0, img, 'original')
         gimg = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-        self._sub_plotting(fig, 1, gimg, 'grayed')
+        self._plot_histo(fig, 1, gimg, 'grayed')
         egimg = cv2.equalizeHist(gimg)
-        self._sub_plotting(fig, 2, egimg, 'equalized')
+        self._plot_histo(fig, 2, egimg, 'equalized')
+        self._hide_ticks(fig, x=False)
+        return fig
+        
+    def _plot_blur(self, fig, index, img, title='untitled'):
+        ax1 = fig.add_subplot(2,2,index)
+        ax1.set_title(title)
+        if img is not None: ax1.imshow(img, cmap="Greys_r")
+
+    def blurring(self, **kwargs): #image processing
+        title = kwargs.get('title', 'Blurring')
+        img = kwargs.get('img', None)
+        fig = plt.figure(figsize=(12, 12))
+        fig.subplots_adjust(hspace=.1, wspace=.03)
+        fig.suptitle( title, fontsize=25, y=.96)
+        #core
+        self._plot_blur(fig, 1, img, 'original')
+        bimg = cv2.boxFilter(img, 0, (15, 15))
+        self._plot_blur(fig, 2, bimg, 'Averaging(Mean) Filtering')
+        mimg = cv2.medianBlur(img, 15) 
+        self._plot_blur(fig, 3, mimg, 'Median Filtering')
+        gimg = cv2.GaussianBlur(img, (15, 15), 5) 
+        self._plot_blur(fig, 4, gimg, 'Guassian Filtering')
         self._hide_ticks(fig)
         return fig
-        #plt.show()
 
 # <codecell>
 
 if __name__ == '__main__':
   cp = CrazyPlotter()
-  cp.demo_ip(title='Scarlet Histograms').show()
+  cp.blurring(title='Blurring').show()
 
 # <markdowncell>
 
@@ -82,7 +103,4 @@ if __name__ == '__main__':
 # plot = app.plotthing()
 # plot.show()
 # #raw_input()
-
-# <codecell>
-
 
