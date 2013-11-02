@@ -75,18 +75,27 @@ cp.sharpening(title='Kelly Clarkson Sharpening', img=kelly).show()
 
 # <codecell>
 
-gimg = cv2.cvtColor(taylor, cv2.COLOR_RGB2GRAY)
-f = np.fft.fft2(gimg)
-fshift = np.fft.fftshift(f)
-magnitude_spectrum = np.log(np.abs(fshift))
+from plotters import CrazyPlotter as crazy
+reload(sys.modules['plotters'])
+cp = crazy()
+for i in range(1, 4):
+  cp.frequency_filtering( img=taylor, mask=cp.squre_mask(img, 0.01*i)).show()
 
-fig = plt.figure(figsize=(16, 10))
-fig.subplots_adjust(hspace=.14, wspace=.03)
-plt.subplot(121),plt.imshow(taylor, cmap = 'gray')
-plt.title('Input Image'), plt.xticks([]), plt.yticks([])
-plt.subplot(122),plt.imshow(magnitude_spectrum, cmap = 'gray')
-plt.title('Magnitude Spectrum'), plt.xticks([]), plt.yticks([])
-plt.show()
+# <codecell>
+
+from plotters import CrazyPlotter as crazy
+reload(sys.modules['plotters'])
+cp = crazy()
+for i in range(3, 20, 6):
+  cp.frequency_filtering( img=taylor, mask=cp.gaussian_mask(img, 4*i)).show()
+
+# <codecell>
+
+from plotters import CrazyPlotter as crazy
+reload(sys.modules['plotters'])
+cp = crazy()
+for i in range(3, 20, 6):
+  cp.frequency_filtering( img=taylor, mask=cp.gaussian_mask(img, 4*i)).show()
 
 # <codecell>
 
@@ -94,7 +103,7 @@ plt.show()
 mean_filter = np.ones((3,3))
 
 # creating a guassian filter
-x = cv2.getGaussianKernel(5,10)
+x = cv2.getGaussianKernel( 20, 2)
 gaussian = x*x.T
 
 # different edge detecting filters
@@ -125,12 +134,20 @@ mag_spectrum = [np.log(np.abs(z)+1) for z in fft_shift]
 for i in xrange(6):
     plt.subplot(2,3,i+1),plt.imshow(mag_spectrum[i],cmap = 'gray')
     plt.title(filter_name[i]), plt.xticks([]), plt.yticks([])
+
 plt.show()
 
 # <codecell>
 
-apple = [[1,1,1, 1, 1], [1, 1,2,1, 1], [1,2,2,2,1], [1,1,2,1,1], [1,1,1,1,1]]
-plt.imshow(apple, cmap = 'Greys_r')
+mask=cp.gaussian_mask(img, 55)
+plt.imshow( mask[:,:,0], cmap = 'gray')
+a = [[1,2,3],[4,5,6]]
+mask[:2,:3, 0] = a
+
+# <codecell>
+
+for i in range(5, 55, 10):
+    print i
 
 # <codecell>
 

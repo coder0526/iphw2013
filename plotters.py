@@ -98,6 +98,72 @@ class CrazyPlotter(object):
         self._plot2(fig, 3, uimg, 'Laplacian masking')
         self._hide_ticks(fig)
         return fig
+    
+    def _optimize_shape(self, img):
+        rows, cols = img.shape
+        nrows = cv2.getOptimalDFTSize(rows)
+        ncols = cv2.getOptimalDFTSize(cols)
+        img = cv2.copyMakeBorder(img, 0, nrows-rows, 0, ncols-cols, cv2.BORDER_CONSTANT, value = 0)
+        return img
+    
+    def squre_mask(self, img, size):
+        rows, cols = img.shape
+        crow, ccol = rows/2 , cols/2
+        sqsize = (rows + cols)*size
+        # create a mask first, center square is 1, remaining all zeros
+        mask = np.zeros((rows,cols,2),np.uint8)
+        mask[crow-sqsize:crow+sqsize, ccol-sqsize:ccol+sqsize] = 1
+        return mask
+    
+    def gaussian_mask(self, img, sigma=1):
+        rows, cols = img.shape
+        crow, ccol = rows/2 , cols/2
+        sqsize = min(rows, cols)
+        x = cv2.getGaussianKernel( sqsize, sigma)
+        gaussian = x*x.T
+        mask = np.zeros((rows,cols,2),np.float16)
+        mask[:sqsize, :sqsize, 0] = gaussian
+        mask[:sqsize, :sqsize, 1] = gaussian
+        return mask
+    
+    def butterworth_mask(self, img, sigma=1):
+        rows, cols = img.shape
+        crow, ccol = rows/2 , cols/2
+        sqsize = min(rows, cols)
+        x = cv2.getGaussianKernel( sqsize, sigma)
+        gaussian = x*x.T
+        mask = np.zeros((rows,cols,2),np.float16)
+        mask[:sqsize, :sqsize, 0] = gaussian
+        mask[:sqsize, :sqsize, 1] = gaussian
+        return mask
+    
+    def _plot3(self, fig, img, index, title):
+        ax = fig.add_subplot(1, 4, index)
+        ax.imshow(img, cmap = 'gray')
+        ax.set_title(title), ax.xaxis.set_ticks([]), ax.yaxis.set_ticks([])
+
+    def frequency_filtering(self, **kwargs):
+        #title = kwargs.get('title', 'Freuency filtering')
+        img = kwargs.get('img', None)
+        fig = plt.figure(figsize=(16, 5))
+        fig.subplots_adjust(hspace=.03, wspace=.03)
+        #fig.suptitle( title, fontsize=24, y=1)
+        #core
+        img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+        img = self._optimize_shape(img)
+        dft = cv2.dft( np.float32(img), flags=cv2.DFT_COMPLEX_OUTPUT)
+        dft_shift = np.fft.fftshift(dft)
+        magnitude_spectrum = 20*np.log(cv2.magnitude(dft_shift[:,:,0],dft_shift[:,:,1]))
+        _mask = kwargs.get('mask', self.squre_mask(img, 0.05))
+        fshift = dft_shift*_mask
+        f_ishift = np.fft.ifftshift(fshift)
+        img_idft = cv2.idft(f_ishift)
+        img_idft = cv2.magnitude( img_idft[:,:,0], img_idft[:,:,1])
+        self._plot3(fig, img, 1, 'Original')
+        self._plot3(fig, magnitude_spectrum, 2, 'Frequency Spectrum')
+        self._plot3(fig, _mask[:,:,0], 3, 'Mask')
+        self._plot3(fig, img_idft, 4, 'Result')
+        return fig
 
 # <codecell>
 
