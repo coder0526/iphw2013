@@ -56,8 +56,12 @@ class CrazyPlotter(object):
         self._hide_ticks(fig, x=False)
         return fig
         
-    def _plot_blur(self, fig, index, img, title='untitled'):
+    def _plot(self, fig, index, img, title='untitled'):
         ax1 = fig.add_subplot(2,2,index)
+        ax1.set_title(title)
+        if img is not None: ax1.imshow(img, cmap="Greys_r")
+    def _plot2(self, fig, index, img, title='untitled'):
+        ax1 = fig.add_subplot(1,3,index)
         ax1.set_title(title)
         if img is not None: ax1.imshow(img, cmap="Greys_r")
 
@@ -68,13 +72,30 @@ class CrazyPlotter(object):
         fig.subplots_adjust(hspace=.1, wspace=.03)
         fig.suptitle( title, fontsize=25, y=.96)
         #core
-        self._plot_blur(fig, 1, img, 'original')
+        self._plot(fig, 1, img, 'original')
         bimg = cv2.boxFilter(img, 0, (15, 15))
-        self._plot_blur(fig, 2, bimg, 'Averaging(Mean) Filtering')
+        self._plot(fig, 2, bimg, 'Averaging(Mean) Filtering')
         mimg = cv2.medianBlur(img, 15) 
-        self._plot_blur(fig, 3, mimg, 'Median Filtering')
+        self._plot(fig, 3, mimg, 'Median Filtering')
         gimg = cv2.GaussianBlur(img, (15, 15), 5) 
-        self._plot_blur(fig, 4, gimg, 'Guassian Filtering')
+        self._plot(fig, 4, gimg, 'Guassian Filtering')
+        self._hide_ticks(fig)
+        return fig
+    
+    def sharpening(self, **kwargs): #image processing
+        title = kwargs.get('title', 'Blurring')
+        img = kwargs.get('img', None)
+        fig = plt.figure(figsize=(15, 5))
+        fig.subplots_adjust(hspace=.1, wspace=.03)
+        fig.suptitle( title, fontsize=25, y=1.09)
+        #core
+        self._plot2(fig, 1, img, 'original')
+        gimg = cv2.GaussianBlur(img, (0, 0), 15) 
+        uimg = cv2.addWeighted(img, 1.3, gimg, -.3, 0)
+        self._plot2(fig, 2, uimg, 'Unsharp masking')
+        gimg = cv2.Laplacian(img, cv2.CV_8U, ksize=3)
+        uimg = cv2.addWeighted(img, 1.1, gimg, -.1, 0)
+        self._plot2(fig, 3, uimg, 'Laplacian masking')
         self._hide_ticks(fig)
         return fig
 
