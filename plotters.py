@@ -106,24 +106,41 @@ class CrazyPlotter(object):
         img = cv2.copyMakeBorder(img, 0, nrows-rows, 0, ncols-cols, cv2.BORDER_CONSTANT, value = 0)
         return img
     
-    def squre_mask(self, img, size):
-        rows, cols = img.shape
-        crow, ccol = rows/2 , cols/2
-        sqsize = (rows + cols)*size
-        # create a mask first, center square is 1, remaining all zeros
-        mask = np.zeros((rows,cols,2),np.uint8)
-        mask[crow-sqsize:crow+sqsize, ccol-sqsize:ccol+sqsize] = 1
+    def disk_mask(self, cx=5, cy=5, n=11, r=3, fill=1):
+        y,x = np.ogrid[-cx:n-cx, -cy:n-cy]
+        mask = x*x + y*y <= r*r
+        array = np.zeros((n, n))
+        array[mask] = fill
+        return array
+
+    def make_odd(self, val):
+        val = val if (val % 2 ==1) else (val - 1)
+        return val
+    
+    def squre_mask(self, img, sigma=20, inverse=0):
+        hs, ws = img.shape
+        hms, wms = hs/2, ws/2
+        sqsize = self.make_odd(min(hs, ws))
+        xshift = ( ws - sqsize )/2
+        yshift = ( hs - sqsize )/2
+        x = self.disk_mask( sqsize/2, sqsize/2, sqsize, sigma)
+        x = ( 1 - x ) if inverse else x
+        mask = np.ones(( hs, ws, 2),np.uint8) if inverse else np.zeros(( hs, ws, 2),np.uint8)
+        mask[ yshift:sqsize+yshift, xshift:sqsize+xshift, 0] = x
+        mask[ yshift:sqsize+yshift, xshift:sqsize+xshift, 1] = x
         return mask
     
-    def gaussian_mask(self, img, sigma=1):
-        rows, cols = img.shape
-        crow, ccol = rows/2 , cols/2
-        sqsize = min(rows, cols)
-        x = cv2.getGaussianKernel( sqsize, sigma)
-        gaussian = x*x.T
-        mask = np.zeros((rows,cols,2),np.float16)
-        mask[:sqsize, :sqsize, 0] = gaussian
-        mask[:sqsize, :sqsize, 1] = gaussian
+    def gaussian_mask(self, img, sigma=1, inverse=False):
+        hs, ws = img.shape
+        sqsize = self.make_odd(min(hs, ws))
+        xshift = ( ws - sqsize )/2
+        yshift = ( hs - sqsize )/2
+        x = cv2.getGaussianKernel( sqsize, sigma )
+        gaussian = ( x*x.T ) * 1000
+        gaussian = ( 1 - gaussian ) if inverse else gaussian
+        mask = np.ones(( hs, ws, 2),np.float16) if inverse else np.zeros(( hs, ws, 2),np.float16)
+        mask[ yshift:sqsize+yshift, xshift:sqsize+xshift, 0] = gaussian
+        mask[ yshift:sqsize+yshift, xshift:sqsize+xshift, 1] = gaussian
         return mask
     
     def butterworth_mask(self, img, sigma=1):
@@ -137,7 +154,7 @@ class CrazyPlotter(object):
         mask[:sqsize, :sqsize, 1] = gaussian
         return mask
     
-    def _plot3(self, fig, img, index, title):
+    def _plot3(self, fig, index, title, img):
         ax = fig.add_subplot(1, 4, index)
         ax.imshow(img, cmap = 'gray')
         ax.set_title(title), ax.xaxis.set_ticks([]), ax.yaxis.set_ticks([])
@@ -159,10 +176,10 @@ class CrazyPlotter(object):
         f_ishift = np.fft.ifftshift(fshift)
         img_idft = cv2.idft(f_ishift)
         img_idft = cv2.magnitude( img_idft[:,:,0], img_idft[:,:,1])
-        self._plot3(fig, img, 1, 'Original')
-        self._plot3(fig, magnitude_spectrum, 2, 'Frequency Spectrum')
-        self._plot3(fig, _mask[:,:,0], 3, 'Mask')
-        self._plot3(fig, img_idft, 4, 'Result')
+        self._plot3(fig, 1, 'Original', img)
+        self._plot3(fig, 2, 'Frequency Spectrum', magnitude_spectrum)
+        self._plot3(fig, 3, 'Mask', 1- _mask[:,:,0])
+        self._plot3(fig, 4, 'Result', img_idft)
         return fig
 
 # <codecell>

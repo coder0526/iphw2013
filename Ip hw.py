@@ -78,24 +78,26 @@ cp.sharpening(title='Kelly Clarkson Sharpening', img=kelly).show()
 from plotters import CrazyPlotter as crazy
 reload(sys.modules['plotters'])
 cp = crazy()
-for i in range(1, 4):
-  cp.frequency_filtering( img=taylor, mask=cp.squre_mask(img, 0.01*i)).show()
+for i in range(3, 10, 3):
+  cp.frequency_filtering( img=taylor, mask=cp.squre_mask(img, 5*i, 0)).show()
+for i in range(3, 10, 3):
+  cp.frequency_filtering( img=taylor, mask=cp.squre_mask(img, 5*i, 1)).show()
 
 # <codecell>
 
 from plotters import CrazyPlotter as crazy
 reload(sys.modules['plotters'])
 cp = crazy()
-for i in range(3, 20, 6):
-  cp.frequency_filtering( img=taylor, mask=cp.gaussian_mask(img, 4*i)).show()
+for i in range(3, 10, 3):
+    cp.frequency_filtering( img=taylor, mask=cp.gaussian_mask(img, 3*i, 0)).show()    
 
 # <codecell>
 
 from plotters import CrazyPlotter as crazy
 reload(sys.modules['plotters'])
 cp = crazy()
-for i in range(3, 20, 6):
-  cp.frequency_filtering( img=taylor, mask=cp.gaussian_mask(img, 4*i)).show()
+for i in range(3, 10, 3):
+    cp.frequency_filtering( img=taylor, mask=cp.gaussian_mask(img, 3*i, inverse=True)).show()
 
 # <codecell>
 
@@ -139,16 +141,33 @@ plt.show()
 
 # <codecell>
 
-mask=cp.gaussian_mask(img, 55)
+size = 60
+aa = np.ndarray( ( size, size))
+#mask= cp.gaussian_mask( aa, 15, 1)
 plt.imshow( mask[:,:,0], cmap = 'gray')
-a = [[1,2,3],[4,5,6]]
-mask[:2,:3, 0] = a
+msize= int(size/2) + 20
+mwid = min(int(size/8), 10)
+for x in range( msize- mwid, msize+mwid, 1):
+    r = ""
+    for y in range( msize-mwid, msize+mwid, 1):
+        r += "_%.4f" % mask[x,y,0]
+    print r
+img.shape
 
 # <codecell>
 
-for i in range(5, 55, 10):
-    print i
+from scipy.signal import butter, lfilter
+ 
+def butter_bandpass_filter( lowcut, highcut, fs, order=5):
+    nyq = 0.5 * fs
+    low = lowcut / nyq
+    high = highcut / nyq
+    b, a = butter(order, [low, high], btype='band')
+    return b,a
+    #y = lfilter(b, a, data)
+    #return y
 
 # <codecell>
 
+b,a = butter_bandpass_filter(3, 10, .6, order= 5)
 
