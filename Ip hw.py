@@ -89,15 +89,19 @@ from plotters import CrazyPlotter as crazy
 reload(sys.modules['plotters'])
 cp = crazy()
 for i in range(3, 10, 3):
-    cp.frequency_filtering( img=taylor, mask=cp.gaussian_mask(img, 3*i, 0)).show()    
+    cp.frequency_filtering( img=taylor, mask=cp.gaussian_mask(img, 3*i, 0)).show()   
+for i in range(3, 10, 3):    
+    cp.frequency_filtering( img=taylor, mask=cp.gaussian_mask(img, 3*i, inverse=True)).show()
 
 # <codecell>
 
 from plotters import CrazyPlotter as crazy
 reload(sys.modules['plotters'])
 cp = crazy()
-for i in range(3, 10, 3):
-    cp.frequency_filtering( img=taylor, mask=cp.gaussian_mask(img, 3*i, inverse=True)).show()
+for i in range(1, 4):
+    cp.frequency_filtering( img=taylor, mask=cp.butterworth_mask(img, .02*i, inverse=0)).show()
+for i in range(1, 4):
+    cp.frequency_filtering( img=taylor, mask=cp.butterworth_mask(img, .02*i, inverse=1)).show()
 
 # <codecell>
 
